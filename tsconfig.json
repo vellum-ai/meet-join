@@ -14,7 +14,6 @@
   "include": [
     "plugin-host.ts",
     "register.ts",
-    "entrypoint.ts",
     "meet-config.ts",
     "config-schema.ts",
     "daemon/**/*.ts",

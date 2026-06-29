@@ -55,31 +55,14 @@ import {
   createMeetSpeakTool,
 } from "./tools/meet-speak-tool.js";
 
-/**
- * Options accepted by {@link register}. Build-tooling callers (notably
- * `scripts/emit-manifest.ts`) pass `disableStartupOrphanReaper: true` so
- * the session-manager constructor's one-shot Docker sweep does not fire
- * against the developer's real Docker socket and SIGTERM live meet-bot
- * containers. The daemon bootstrap leaves the flag unset so the reaper
- * runs as intended on daemon startup.
- */
-export interface MeetJoinRegisterOptions {
-  disableStartupOrphanReaper?: boolean;
-}
-
-export function register(
-  host: SkillHost,
-  options: MeetJoinRegisterOptions = {},
-): void {
+export function register(host: SkillHost): void {
   // Construct the session manager eagerly so the tool modules that import
   // the module-level `MeetSessionManager` singleton resolve against a live
   // instance. Sub-module factories are resolved from the in-skill
   // registry inside the constructor — the session-manager module's
   // side-effect imports trigger the required `registerSubModule(...)`
   // registrations at import time.
-  createMeetSessionManager(host, {
-    disableStartupOrphanReaper: options.disableStartupOrphanReaper,
-  });
+  createMeetSessionManager(host, {});
 
   host.registries.registerSkillRoute({
     pattern: MEET_INTERNAL_EVENTS_PATH_RE,
