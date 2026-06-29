@@ -27,8 +27,8 @@ import type {
   ToolContext,
   ToolDefinition,
   ToolExecutionResult,
-} from "@vellumai/skill-host-contracts";
-import { RiskLevel } from "@vellumai/skill-host-contracts";
+} from "../plugin-host.js";
+import { RiskLevel } from "../plugin-host.js";
 import { z } from "zod";
 
 import { getMeetConfig } from "../meet-config.js";

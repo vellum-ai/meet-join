@@ -57,8 +57,8 @@ import type {
   MessageRole,
   ServerMessage,
   SkillHost,
-} from "@vellumai/skill-host-contracts";
-import { buildAssistantEvent } from "@vellumai/skill-host-contracts";
+} from "../plugin-host.js";
+import { buildAssistantEvent } from "../plugin-host.js";
 
 import type { MeetBotEvent } from "../contracts/index.js";
 

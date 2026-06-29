@@ -35,7 +35,7 @@ import { spawn as nodeSpawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { Readable, Transform } from "node:stream";
 
-import type { Logger, SkillHost } from "@vellumai/skill-host-contracts";
+import type { Logger, SkillHost } from "../plugin-host.js";
 
 import { registerSubModule } from "./modules-registry.js";
 

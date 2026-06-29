@@ -36,7 +36,7 @@
  * would reject the bot's opaque bearer token as a malformed JWT).
  */
 
-import type { SkillHost } from "@vellumai/skill-host-contracts";
+import type { SkillHost } from "./plugin-host.js";
 
 import { createMeetSessionManager } from "./daemon/session-manager.js";
 import {

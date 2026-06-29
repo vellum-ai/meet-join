@@ -45,7 +45,7 @@ import {
   type Socket as NetSocket,
 } from "node:net";
 
-import type { Logger, SkillHost } from "@vellumai/skill-host-contracts";
+import type { Logger, SkillHost } from "../plugin-host.js";
 
 import type { TranscriptChunkEvent } from "../contracts/index.js";
 import { registerSubModule } from "./modules-registry.js";

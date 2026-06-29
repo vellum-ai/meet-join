@@ -38,7 +38,7 @@
 
 import { timingSafeEqual } from "node:crypto";
 
-import type { SkillHost } from "@vellumai/skill-host-contracts";
+import type { SkillHost } from "../plugin-host.js";
 import { z } from "zod";
 
 import { MeetBotEventSchema } from "../contracts/index.js";

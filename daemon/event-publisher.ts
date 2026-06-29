@@ -37,7 +37,7 @@
  * consumer never steps on an existing one.
  */
 
-import type { Logger, SkillHost } from "@vellumai/skill-host-contracts";
+import type { Logger, SkillHost } from "../plugin-host.js";
 
 import type { MeetBotEvent } from "../contracts/index.js";
 

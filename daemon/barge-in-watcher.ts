@@ -42,7 +42,7 @@ import type {
   Logger,
   SkillHost,
   Subscription as AssistantEventSubscription,
-} from "@vellumai/skill-host-contracts";
+} from "../plugin-host.js";
 
 import type {
   MeetBotEvent,

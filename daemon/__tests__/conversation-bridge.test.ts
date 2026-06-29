@@ -27,7 +27,7 @@ import type {
   TranscriptChunkEvent,
 } from "../../contracts/index.js";
 
-import type { AssistantEvent } from "@vellumai/skill-host-contracts";
+import type { AssistantEvent } from "../../plugin-host.js";
 import {
   type InsertMessageFn,
   MeetConversationBridge,

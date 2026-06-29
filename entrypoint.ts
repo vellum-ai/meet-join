@@ -74,7 +74,7 @@
 
 import { parseArgs } from "node:util";
 
-import { SkillHostClient } from "@vellumai/skill-host-contracts";
+import { SkillHostClient } from "./plugin-host.js";
 
 import { register } from "./register.js";
 

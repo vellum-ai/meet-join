@@ -10,7 +10,7 @@
 
 import { describe, expect, test } from "bun:test";
 
-import type { SkillHost } from "@vellumai/skill-host-contracts";
+import type { SkillHost } from "../../plugin-host.js";
 
 import type { MeetBotEvent } from "../../contracts/index.js";
 

@@ -43,7 +43,7 @@ import type {
   DaemonRuntimeMode,
   Logger,
   SkillHost,
-} from "@vellumai/skill-host-contracts";
+} from "../plugin-host.js";
 
 /**
  * No-op logger used when a `DockerRunner` is instantiated without an

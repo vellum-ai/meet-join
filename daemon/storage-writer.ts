@@ -48,7 +48,7 @@ import {
 } from "node:fs";
 import { join } from "node:path";
 
-import type { Logger, SkillHost } from "@vellumai/skill-host-contracts";
+import type { Logger, SkillHost } from "../plugin-host.js";
 
 import type {
   MeetBotEvent,

@@ -13,7 +13,7 @@
  * name) rather than mocking into `assistant/src/...` directly.
  */
 
-import type { SkillHost, Tool } from "@vellumai/skill-host-contracts";
+import type { SkillHost, Tool } from "../../plugin-host.js";
 import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 
 // ----- Mocks wired BEFORE importing the tool ---------------------------------
