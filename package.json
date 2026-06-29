@@ -4,9 +4,8 @@
   "private": true,
   "license": "MIT",
   "type": "module",
-  "scripts": {
-    "emit-manifest": "bun run scripts/emit-manifest.ts",
-    "meet-host": "bun run entrypoint.ts"
+  "peerDependencies": {
+    "@vellumai/plugin-api": "^0.10.3"
   },
   "dependencies": {
     "zod": "4.3.6"

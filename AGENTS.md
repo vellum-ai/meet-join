@@ -7,21 +7,22 @@ entirely — without hunting down scattered references across the monorepo.
 
 ## The isolation rule
 
-The `assistant/` module must never import from `skills/meet-join/` via
-relative paths, and `skills/meet-join/` must never import from `assistant/`.
-Both directions are enforced by `assistant/src/__tests__/skill-boundary-guard.test.ts`.
+meet-join is a standalone external plugin. It must never import from
+`assistant/src/...` or the assistant monorepo `packages/`; the only host
+capabilities it sees arrive through the `SkillHost` surface it is handed at
+registration time.
 
-Meet-join runs as a separate `bun run` subprocess. The daemon ships
-this directory's source plus a generated `manifest.json` alongside its
-binary; on startup it installs proxy tools/routes/hooks from the manifest
-and spawns the meet-host child on first invocation via the
-`assistant-skill.sock` IPC socket. See `assistant/src/daemon/meet-host-startup.ts`
-and `assistant/src/daemon/meet-host-supervisor.ts` for the daemon side.
+Meet-join runs in-process inside the assistant. The host loads this plugin
+and calls its exported `register(host)` exactly once per daemon lifetime,
+handing it a live host surface. The plugin wires its tools, route, and
+shutdown hooks into the host registries; there is no separate subprocess,
+IPC socket, or generated manifest.
 
-Skills wire into the assistant through the `SkillHost` contract from
-`@vellumai/skill-host-contracts`. The meet-host entrypoint constructs a
-`SkillHostClient` against the IPC socket and passes it to `register(host)`;
-the skill uses `host.registries.*` instead of direct imports from `assistant/`:
+The host surface meet-join depends on is declared locally in
+`plugin-host.ts` (see that file's header for why). It is a strawman for the
+facets that should eventually live in `@vellumai/plugin-api`, which the
+plugin declares as a peer dependency. The plugin uses `host.registries.*`
+instead of direct imports from `assistant/`:
 
 - **Tools**: `host.registries.registerTools(() => [...])`
 - **Routes**: `host.registries.registerSkillRoute({ pattern, methods, handler })`

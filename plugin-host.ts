@@ -5,10 +5,12 @@
  *
  * meet-join used to live inside the assistant monorepo as a "skill" and
  * received its host capabilities from `@vellumai/skill-host-contracts`: an
- * out-of-process IPC contract (`SkillHost` + a `SkillHostClient` that talks
- * to the daemon over a socket). That harness is the "API ugliness" we are
- * unwinding — it is a parallel host contract that duplicates what the plugin
- * system should expose directly.
+ * out-of-process IPC contract (`SkillHost` + a `SkillHostClient` that talked
+ * to the daemon over a socket). That harness was the "API ugliness" we are
+ * unwinding — a parallel host contract that duplicated what the plugin
+ * system should expose directly. The IPC bin and its client are gone; what
+ * remains is the in-process host surface the plugin's `register(host)` is
+ * handed.
  *
  * As a standalone repo installed as an external plugin, meet-join can no
  * longer import from `assistant/src/...` or the monorepo `packages/`. The
@@ -24,15 +26,9 @@
  * are real because they are trivial and dependency-free; everything else is
  * type-level or a stub that the host will satisfy once the API is expanded.
  *
- * The `SkillHostClient` at the bottom is a compile-only stand-in for the
- * deprecated IPC bin (`entrypoint.ts`). A plugin runs in-process and never
- * connects over a socket, so the stub throws if constructed. It exists only
- * to keep `entrypoint.ts` typechecking until the IPC harness is removed in
- * the cleanup phase.
- *
  * Surface consolidated here (previously across four files in
  * skill-host-contracts): tool types, runtime mode, server-message wire
- * shape, assistant-event envelope, the host facets, and the IPC client.
+ * shape, assistant-event envelope, and the host facets.
  */
 
 import { randomUUID } from "node:crypto";
@@ -586,59 +582,4 @@ export interface SkillHost {
   events: EventsFacet;
   registries: RegistriesFacet;
   speakers: SpeakersFacet;
-}
-
-// ===========================================================================
-// SkillHostClient — compile-only stub for the deprecated IPC entrypoint
-//
-// A plugin runs in-process; it never connects to the daemon over a socket.
-// This stub keeps `entrypoint.ts` (the out-of-process meet-host bin) and its
-// test typechecking until the IPC harness is removed in the cleanup phase.
-// Constructing it throws, because there is no in-process use for it.
-// ===========================================================================
-
-export interface SkillHostClientOptions {
-  socketPath: string;
-  skillId?: string;
-}
-
-export type SkillHostRequestHandler = (
-  params?: unknown,
-) => unknown | Promise<unknown>;
-
-const NOT_AVAILABLE =
-  "SkillHostClient is the deprecated out-of-process IPC harness. " +
-  "meet-join runs in-process as a plugin; this stub exists only to keep " +
-  "entrypoint.ts compiling until the IPC harness is removed.";
-
-export class SkillHostClient implements SkillHost {
-  readonly logger!: LoggerFacet;
-  readonly config!: ConfigFacet;
-  readonly identity!: IdentityFacet;
-  readonly platform!: PlatformFacet;
-  readonly providers!: ProvidersFacet;
-  readonly memory!: MemoryFacet;
-  readonly events!: EventsFacet;
-  readonly registries!: RegistriesFacet;
-  readonly speakers!: SpeakersFacet;
-
-  constructor(_options: SkillHostClientOptions) {
-    throw new Error(NOT_AVAILABLE);
-  }
-
-  async connect(): Promise<void> {
-    throw new Error(NOT_AVAILABLE);
-  }
-
-  close(): void {
-    throw new Error(NOT_AVAILABLE);
-  }
-
-  registerHandler(_method: string, _handler: SkillHostRequestHandler): void {
-    throw new Error(NOT_AVAILABLE);
-  }
-
-  async rawCall<T = unknown>(_method: string, _params?: unknown): Promise<T> {
-    throw new Error(NOT_AVAILABLE);
-  }
 }
