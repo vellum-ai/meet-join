@@ -34,7 +34,7 @@ import type {
   SkillRoute,
   SkillRouteHandle,
   Tool,
-} from "@vellumai/skill-host-contracts";
+} from "../plugin-host.js";
 
 /** Serialized tool entry in the manifest. */
 interface ToolManifestEntry {

@@ -88,8 +88,8 @@ import type {
   TtsProvider,
   TtsProvidersFacet,
   UserMessage,
-} from "@vellumai/skill-host-contracts";
-import { buildAssistantEvent } from "@vellumai/skill-host-contracts";
+} from "../plugin-host.js";
+import { buildAssistantEvent } from "../plugin-host.js";
 import { mock } from "bun:test";
 
 /**

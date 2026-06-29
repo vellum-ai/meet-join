@@ -58,7 +58,7 @@ import type {
   DaemonRuntimeMode,
   Logger,
   SkillHost,
-} from "@vellumai/skill-host-contracts";
+} from "../plugin-host.js";
 
 // Side-effect imports: every sub-module file calls `registerSubModule` at
 // module-load time so its factory is reachable via `getSubModule` below.

@@ -22,7 +22,7 @@
  * `assistant/` references from `skills/` test files) stays green.
  */
 
-import type { SkillHost, Tool } from "@vellumai/skill-host-contracts";
+import type { SkillHost, Tool } from "../plugin-host.js";
 import { afterAll, describe, expect, mock, test } from "bun:test";
 
 import { buildTestHost } from "./build-test-host.js";

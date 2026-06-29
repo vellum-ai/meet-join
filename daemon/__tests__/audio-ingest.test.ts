@@ -8,7 +8,7 @@
 
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 
-import type { SkillHost } from "@vellumai/skill-host-contracts";
+import type { SkillHost } from "../../plugin-host.js";
 
 import {
   AUDIO_INGEST_AUTH_PREFIX,

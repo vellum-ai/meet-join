@@ -33,7 +33,7 @@
  * method — the real {@link MeetSessionManager} satisfies this naturally.
  */
 
-import type { Logger, SkillHost } from "@vellumai/skill-host-contracts";
+import type { Logger, SkillHost } from "../plugin-host.js";
 
 import type {
   InboundChatEvent,

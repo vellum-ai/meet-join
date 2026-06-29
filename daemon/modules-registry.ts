@@ -16,7 +16,7 @@
  * would defeat the purpose of the refactor.
  */
 
-import type { SkillHost } from "@vellumai/skill-host-contracts";
+import type { SkillHost } from "../plugin-host.js";
 
 import { createDockerRunner, DOCKER_RUNNER_MODULE } from "./docker-runner.js";
 

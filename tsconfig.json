@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "noEmit": true,
+    "types": ["bun-types"]
+  },
+  "include": [
+    "plugin-host.ts",
+    "register.ts",
+    "entrypoint.ts",
+    "meet-config.ts",
+    "config-schema.ts",
+    "daemon/**/*.ts",
+    "tools/**/*.ts",
+    "routes/**/*.ts",
+    "shared/**/*.ts",
+    "scripts/**/*.ts",
+    "contracts/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "bot",
+    "meet-controller-ext",
+    "**/__tests__/**"
+  ]
+}

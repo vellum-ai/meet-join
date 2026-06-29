@@ -26,8 +26,8 @@ import type {
   AssistantEventCallback,
   ServerMessage,
   Subscription as AssistantEventSubscription,
-} from "@vellumai/skill-host-contracts";
-import { buildAssistantEvent } from "@vellumai/skill-host-contracts";
+} from "../../plugin-host.js";
+import { buildAssistantEvent } from "../../plugin-host.js";
 import { describe, expect, mock, test } from "bun:test";
 
 import type { MeetBotEvent } from "../../contracts/index.js";

@@ -22,7 +22,7 @@
  * those events — graceful degradation.
  */
 
-import type { Logger, SkillHost } from "@vellumai/skill-host-contracts";
+import type { Logger, SkillHost } from "../plugin-host.js";
 
 import { registerSubModule } from "./modules-registry.js";
 import type { VisemeEvent, VisemeListener } from "./tts-bridge.js";

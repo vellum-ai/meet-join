@@ -12,7 +12,7 @@
  * minimal fake host (feature-flag reads, no-op logger) to drive them.
  */
 
-import type { SkillHost, Tool } from "@vellumai/skill-host-contracts";
+import type { SkillHost, Tool } from "../../plugin-host.js";
 import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 
 let flagEnabled = true;
