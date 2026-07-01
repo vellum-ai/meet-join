@@ -395,8 +395,6 @@ export interface LoggerFacet {
 // -- Config ------------------------------------------------------------------
 
 export interface ConfigFacet {
-  /** Resolve an assistant feature flag by kebab-case key. */
-  isFeatureFlagEnabled(key: string): boolean;
   /** Read a typed section from the host's resolved config by dot-path (e.g. `"services.meet"`). */
   getSection<T>(path: string): T | undefined;
 }
@@ -545,7 +543,7 @@ export interface SkillRouteHandle {
 }
 
 export interface RegistriesFacet {
-  /** Register a provider that returns the plugin's tool list. Invoked lazily so feature-flag gates re-evaluate. */
+  /** Register a provider that returns the plugin's tool list. Invoked lazily so the tool set is built on demand. */
   registerTools(provider: () => Tool[]): void;
   /** Register a plugin-owned HTTP route. */
   registerSkillRoute(route: SkillRoute): SkillRouteHandle;

@@ -34,7 +34,6 @@ import {
   MeetSessionNotFoundError,
   MeetSessionUnreachableError,
 } from "../daemon/session-manager.js";
-import { MEET_FLAG_KEY } from "./meet-join-tool.js";
 
 const MeetAvatarInputSchema = z.object({
   meetingId: z.string().trim().min(1).optional(),
@@ -72,7 +71,7 @@ function resolveTargetMeetingId(
 
 /**
  * Build the `meet_enable_avatar` tool, wired to the supplied `SkillHost`
- * for feature-flag reads and logging.
+ * for logging.
  */
 export function createMeetEnableAvatarTool(host: SkillHost): Tool {
   const log = host.logger.get("meet-avatar-tool");
@@ -111,16 +110,7 @@ export function createMeetEnableAvatarTool(host: SkillHost): Tool {
       input: Record<string, unknown>,
       _context: ToolContext,
     ): Promise<ToolExecutionResult> {
-      // 1. Feature-flag gate — symmetric with the other meet_* tools.
-      if (!host.config.isFeatureFlagEnabled(MEET_FLAG_KEY)) {
-        return {
-          content:
-            "Error: the meet feature is disabled. Enable the `meet` feature flag to manage Google Meet calls.",
-          isError: true,
-        };
-      }
-
-      // 2. Input validation. All fields are optional so a bare `{}` is valid;
+      // 1. Input validation. All fields are optional so a bare `{}` is valid;
       //    Zod still catches wrong-type submissions.
       const parsed = MeetAvatarInputSchema.safeParse(input);
       if (!parsed.success) {
@@ -130,14 +120,14 @@ export function createMeetEnableAvatarTool(host: SkillHost): Tool {
       }
       const { meetingId: explicitId } = parsed.data;
 
-      // 3. Disambiguate target session.
+      // 2. Disambiguate target session.
       const target = resolveTargetMeetingId(explicitId);
       if (!target.ok) {
         return { content: target.content, isError: true };
       }
       const targetMeetingId = target.meetingId;
 
-      // 4. Delegate.
+      // 3. Delegate.
       try {
         const body = await MeetSessionManager.enableAvatar(targetMeetingId);
         return {
@@ -179,7 +169,7 @@ export function createMeetEnableAvatarTool(host: SkillHost): Tool {
 
 /**
  * Build the `meet_disable_avatar` tool, wired to the supplied `SkillHost`
- * for feature-flag reads and logging.
+ * for logging.
  */
 export function createMeetDisableAvatarTool(host: SkillHost): Tool {
   const log = host.logger.get("meet-avatar-tool");
@@ -214,16 +204,7 @@ export function createMeetDisableAvatarTool(host: SkillHost): Tool {
       input: Record<string, unknown>,
       _context: ToolContext,
     ): Promise<ToolExecutionResult> {
-      // 1. Feature-flag gate.
-      if (!host.config.isFeatureFlagEnabled(MEET_FLAG_KEY)) {
-        return {
-          content:
-            "Error: the meet feature is disabled. Enable the `meet` feature flag to manage Google Meet calls.",
-          isError: true,
-        };
-      }
-
-      // 2. Input validation.
+      // 1. Input validation.
       const parsed = MeetAvatarInputSchema.safeParse(input);
       if (!parsed.success) {
         const message =
@@ -233,14 +214,14 @@ export function createMeetDisableAvatarTool(host: SkillHost): Tool {
       }
       const { meetingId: explicitId } = parsed.data;
 
-      // 3. Disambiguate target session.
+      // 2. Disambiguate target session.
       const target = resolveTargetMeetingId(explicitId);
       if (!target.ok) {
         return { content: target.content, isError: true };
       }
       const targetMeetingId = target.meetingId;
 
-      // 4. Delegate. `disableAvatar` is idempotent on the bot side.
+      // 3. Delegate. `disableAvatar` is idempotent on the bot side.
       try {
         const body = await MeetSessionManager.disableAvatar(targetMeetingId);
         return {

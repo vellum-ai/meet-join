@@ -234,7 +234,7 @@ const MeetAvatarSchema = z
       })
       .default(false)
       .describe(
-        "Whether the Meet bot publishes a virtual-camera video track with a synthesized avatar. Even when true, the top-level `meet` feature flag must also be on and the bot must be able to open the configured `devicePath` inside its container.",
+        "Whether the Meet bot publishes a virtual-camera video track with a synthesized avatar. Even when true, the bot must be able to open the configured `devicePath` inside its container.",
       ),
     renderer: z
       .enum(AVATAR_RENDERER_IDS, {
@@ -278,12 +278,6 @@ export type AvatarRendererId = (typeof AVATAR_RENDERER_IDS)[number];
 
 export const MeetServiceSchema = z
   .object({
-    enabled: z
-      .boolean({ error: "services.meet.enabled must be a boolean" })
-      .default(false)
-      .describe(
-        "Whether the Google Meet joining bot is enabled. Even when true, the top-level `meet` feature flag must also be on for the feature to surface.",
-      ),
     containerImage: z
       .string({ error: "services.meet.containerImage must be a string" })
       .transform((v) => v || "vellum-meet-bot:dev")

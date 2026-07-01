@@ -10,16 +10,15 @@
  *
  * Test strategy: build a `SkillHost` via `buildTestHost()` and pass it
  * to `register(host)`. The helper's defaults stub every facet with
- * no-op implementations, and overriding `config.isFeatureFlagEnabled`
- * + `registries.*` lets the test capture what `register()` registers.
+ * no-op implementations, and overriding `registries.*` lets the test
+ * capture what `register()` registers.
  *
- * Skill-internal modules (the meet-internal route handler, the session
+ * Plugin-internal modules (the meet-internal route handler, the session
  * manager, the meet-config reader) are still stubbed with
  * `mock.module()` to keep the test focused on `register()`'s behavior
  * and avoid the transitive graphs that each of those brings in.
- * `mock.module()` targets remain strictly within `skills/meet-join/`
- * — no `assistant/...` paths — so the PR 19 guard (forbidding
- * `assistant/` references from `skills/` test files) stays green.
+ * `mock.module()` targets remain strictly within the plugin — no host
+ * internals — so the module-boundary guard stays green.
  */
 
 import type { SkillHost, Tool } from "../plugin-host.js";
@@ -100,7 +99,7 @@ type FakeRoute = {
  * facet's mock spy makes the access visible rather than silently
  * successful.
  */
-function buildCaptureHost(flagEnabled: boolean): {
+function buildCaptureHost(): {
   host: SkillHost;
   toolProviders: Array<() => Tool[]>;
   routes: FakeRoute[];
@@ -110,16 +109,14 @@ function buildCaptureHost(flagEnabled: boolean): {
 
   const host = buildTestHost({
     config: {
-      isFeatureFlagEnabled: (key: string) =>
-        key === "meet" ? flagEnabled : true,
       getSection: () => undefined,
     },
     registries: {
       registerTools: (provider) => {
         if (typeof provider !== "function") {
-          // register.ts always passes a provider closure; an eager
-          // array would bypass the flag-deferral intent of the
-          // external-tool registry.
+          // register.ts always passes a provider closure; the
+          // external-tool registry resolves it lazily so tool
+          // definitions are built on demand rather than eagerly.
           throw new Error("register.test: expected lazy tool provider");
         }
         toolProviders.push(provider);
@@ -156,8 +153,8 @@ afterAll(() => {
 });
 
 describe("meet-join register", () => {
-  test("registers every meet_* tool when the meet flag is on", () => {
-    const capture = buildCaptureHost(true);
+  test("registers every meet_* tool", () => {
+    const capture = buildCaptureHost();
     register(capture.host);
 
     const tools = capture.toolProviders.flatMap((p) => p());
@@ -172,24 +169,12 @@ describe("meet-join register", () => {
     expect(new Set(meetTools).size).toBe(EXPECTED_TOOL_NAMES.length);
   });
 
-  test("tool provider returns an empty list when the meet flag is off", () => {
-    // The lazy provider closure is what the daemon's tool manifest
-    // resolves at `getExternalTools()` time, so the flag read must
-    // deflect to `[]` when the flag is off — otherwise dormant tool
-    // definitions leak into the LLM's manifest and the in-`execute()`
-    // defensive flag checks become the only safety net.
-    const capture = buildCaptureHost(false);
-    register(capture.host);
-    const tools = capture.toolProviders.flatMap((p) => p());
-    expect(tools).toEqual([]);
-  });
-
   test("registers the meet-internal POST route for bot ingress", () => {
     // Without this registration the bot's POST /v1/internal/meet/:id/events
     // request falls through to the daemon's JWT middleware, which
     // rejects the bot's opaque hex bearer token with
     // "malformed_token: expected 3 dot-separated parts".
-    const capture = buildCaptureHost(true);
+    const capture = buildCaptureHost();
     register(capture.host);
 
     const route = capture.routes.find((r) =>
@@ -202,7 +187,7 @@ describe("meet-join register", () => {
   });
 
   test("meet-internal route handler URL-decodes the meetingId capture", async () => {
-    const capture = buildCaptureHost(true);
+    const capture = buildCaptureHost();
     register(capture.host);
 
     const path = "/v1/internal/meet/abc%20123/events";
@@ -219,7 +204,7 @@ describe("meet-join register", () => {
     // throw URIError. Without the try/catch this surfaces pre-auth
     // and the daemon returns a 500; the handler must intercept and
     // return 400.
-    const capture = buildCaptureHost(true);
+    const capture = buildCaptureHost();
     register(capture.host);
 
     const path = "/v1/internal/meet/abc%ZZ/events";

@@ -1,20 +1,19 @@
 /**
  * Tests for the `meet_send_chat` tool.
  *
- * Exercises feature-flag gating, input validation, disambiguation when the
+ * Exercises input validation, disambiguation when the
  * caller omits `meetingId` (0 / 1 / many active sessions), explicit-id
  * pass-through, and error propagation from the session manager. Mirrors
  * the mocking style used in the sibling `meet-leave-tool.test.ts`.
  *
  * The tool is now constructed via `createMeetSendChatTool(host)`, so the
- * test builds a minimal fake host (feature-flag reads, no-op logger) to
+ * test builds a minimal fake host (no-op logger) to
  * drive it.
  */
 
 import type { SkillHost, Tool } from "../../plugin-host.js";
 import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 
-let flagEnabled = true;
 let activeSessionsValue: Array<{
   meetingId: string;
   conversationId: string;
@@ -75,8 +74,6 @@ function makeHost(): SkillHost {
         new Proxy({} as Record<string, unknown>, { get: () => () => {} }),
     } as SkillHost["logger"],
     config: {
-      isFeatureFlagEnabled: (key: string) =>
-        key === "meet" ? flagEnabled : true,
       getSection: () => undefined,
     },
     identity: throwingProxy("identity") as SkillHost["identity"],
@@ -116,7 +113,6 @@ function fakeSession(meetingId: string) {
 }
 
 beforeEach(() => {
-  flagEnabled = true;
   activeSessionsValue = [];
   sendChatMock.mockClear();
   sendChatMock.mockImplementation(async () => {});
@@ -127,24 +123,7 @@ afterAll(() => {
   mock.restore();
 });
 
-// ---------------------------------------------------------------------------
-// Feature-flag gating
-// ---------------------------------------------------------------------------
 
-describe("meet_send_chat feature-flag gating", () => {
-  test("returns an error when the meet flag is off", async () => {
-    flagEnabled = false;
-    meetSendChatTool = createMeetSendChatTool(makeHost());
-    activeSessionsValue = [fakeSession("m1")];
-    const result = await meetSendChatTool.execute(
-      { text: "hello" },
-      makeContext() as never,
-    );
-    expect(result.isError).toBe(true);
-    expect(result.content).toContain("meet feature is disabled");
-    expect(sendChatMock).not.toHaveBeenCalled();
-  });
-});
 
 // ---------------------------------------------------------------------------
 // Input validation

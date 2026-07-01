@@ -1,7 +1,7 @@
 /**
  * Tests for the `meet_enable_avatar` and `meet_disable_avatar` tools.
  *
- * Exercises feature-flag gating, input validation (optional meetingId),
+ * Exercises input validation (optional meetingId),
  * disambiguation when the caller omits `meetingId` (0 / 1 / many active
  * sessions), explicit-id pass-through, and error propagation from the
  * session manager. Mirrors the mocking style used in the sibling
@@ -9,13 +9,12 @@
  *
  * The tools are now constructed via factories (`createMeetEnableAvatarTool`,
  * `createMeetDisableAvatarTool`) taking a `SkillHost`; the test builds a
- * minimal fake host (feature-flag reads, no-op logger) to drive them.
+ * minimal fake host (no-op logger) to drive them.
  */
 
 import type { SkillHost, Tool } from "../../plugin-host.js";
 import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 
-let flagEnabled = true;
 let activeSessionsValue: Array<{
   meetingId: string;
   conversationId: string;
@@ -102,8 +101,6 @@ function makeHost(): SkillHost {
         new Proxy({} as Record<string, unknown>, { get: () => () => {} }),
     } as SkillHost["logger"],
     config: {
-      isFeatureFlagEnabled: (key: string) =>
-        key === "meet" ? flagEnabled : true,
       getSection: () => undefined,
     },
     identity: throwingProxy("identity") as SkillHost["identity"],
@@ -144,7 +141,6 @@ function fakeSession(meetingId: string) {
 }
 
 beforeEach(() => {
-  flagEnabled = true;
   activeSessionsValue = [];
   enableAvatarMock.mockClear();
   enableAvatarMock.mockImplementation(async () => ({
@@ -167,23 +163,8 @@ afterAll(() => {
 });
 
 // ---------------------------------------------------------------------------
-// meet_enable_avatar — feature-flag gating
 // ---------------------------------------------------------------------------
 
-describe("meet_enable_avatar feature-flag gating", () => {
-  test("returns an error when the meet flag is off", async () => {
-    flagEnabled = false;
-    meetEnableAvatarTool = createMeetEnableAvatarTool(makeHost());
-    activeSessionsValue = [fakeSession("m1")];
-    const result = await meetEnableAvatarTool.execute(
-      {},
-      makeContext() as never,
-    );
-    expect(result.isError).toBe(true);
-    expect(result.content).toContain("meet feature is disabled");
-    expect(enableAvatarMock).not.toHaveBeenCalled();
-  });
-});
 
 // ---------------------------------------------------------------------------
 // meet_enable_avatar — input validation
@@ -346,23 +327,8 @@ describe("meet_enable_avatar error propagation", () => {
 });
 
 // ---------------------------------------------------------------------------
-// meet_disable_avatar — feature-flag gating
 // ---------------------------------------------------------------------------
 
-describe("meet_disable_avatar feature-flag gating", () => {
-  test("returns an error when the meet flag is off", async () => {
-    flagEnabled = false;
-    meetDisableAvatarTool = createMeetDisableAvatarTool(makeHost());
-    activeSessionsValue = [fakeSession("m1")];
-    const result = await meetDisableAvatarTool.execute(
-      {},
-      makeContext() as never,
-    );
-    expect(result.isError).toBe(true);
-    expect(result.content).toContain("meet feature is disabled");
-    expect(disableAvatarMock).not.toHaveBeenCalled();
-  });
-});
 
 // ---------------------------------------------------------------------------
 // meet_disable_avatar — disambiguation

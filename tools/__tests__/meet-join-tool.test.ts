@@ -1,7 +1,7 @@
 /**
  * Tests for the `meet_join` tool.
  *
- * Exercises URL validation, feature-flag gating, `{assistantName}`
+ * Exercises URL validation, `{assistantName}`
  * substitution, and the happy-path call into `MeetSessionManager.join`.
  * The session manager is swapped via `mock.module` so the tool under
  * test continues to import the real singleton path — the same one
@@ -9,7 +9,7 @@
  * just for tests.
  *
  * The tool itself now takes a `SkillHost` at construction time, so the
- * test builds a minimal fake host (feature-flag reads, logger, assistant
+ * test builds a minimal fake host (logger, assistant
  * name) rather than mocking into `assistant/src/...` directly.
  */
 
@@ -18,7 +18,6 @@ import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 
 // ----- Mocks wired BEFORE importing the tool ---------------------------------
 
-let flagEnabled = true;
 let assistantNameValue: string | undefined = "Nova";
 let consentTemplate =
   "Hi, I'm {assistantName}, an AI assistant joining to take notes. Let me know if you'd prefer I leave.";
@@ -76,7 +75,7 @@ const {
 
 /**
  * Minimal fake `SkillHost` exposing only the facets `createMeetJoinTool`
- * reads: logger, config.isFeatureFlagEnabled, identity.getAssistantName.
+ * reads: logger, identity.getAssistantName.
  * Every other facet is a throwing proxy so drift into un-plumbed host
  * surfaces fails loudly instead of silently no-opping.
  */
@@ -95,8 +94,6 @@ function makeHost(): SkillHost {
         new Proxy({} as Record<string, unknown>, { get: () => () => {} }),
     } as SkillHost["logger"],
     config: {
-      isFeatureFlagEnabled: (key: string) =>
-        key === "meet" ? flagEnabled : true,
       getSection: () => undefined,
     },
     identity: {
@@ -131,7 +128,6 @@ function makeContext(overrides: { conversationId?: string } = {}): {
 }
 
 beforeEach(() => {
-  flagEnabled = true;
   assistantNameValue = "Nova";
   consentTemplate =
     "Hi, I'm {assistantName}, an AI assistant joining to take notes. Let me know if you'd prefer I leave.";
@@ -194,24 +190,11 @@ describe("substituteAssistantName", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Feature-flag gating
+// Delegation
 // ---------------------------------------------------------------------------
 
-describe("meet_join feature-flag gating", () => {
-  test("returns an error when the meet flag is off", async () => {
-    flagEnabled = false;
-    meetJoinTool = createMeetJoinTool(makeHost());
-    const result = await meetJoinTool.execute(
-      { url: "https://meet.google.com/abc-defg-hij" },
-      makeContext() as never,
-    );
-    expect(result.isError).toBe(true);
-    expect(result.content).toContain("meet feature is disabled");
-    expect(joinMock).not.toHaveBeenCalled();
-  });
-
-  test("proceeds to the session manager when the meet flag is on", async () => {
-    flagEnabled = true;
+describe("meet_join delegation", () => {
+  test("proceeds to the session manager on a valid url", async () => {
     meetJoinTool = createMeetJoinTool(makeHost());
     const result = await meetJoinTool.execute(
       { url: "https://meet.google.com/abc-defg-hij" },

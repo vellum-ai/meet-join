@@ -21,7 +21,6 @@ import { RiskLevel } from "../plugin-host.js";
 import { z } from "zod";
 
 import { MeetSessionManager } from "../daemon/session-manager.js";
-import { MEET_FLAG_KEY } from "./meet-join-tool.js";
 
 /** Default reason recorded when the caller doesn't supply one. */
 export const DEFAULT_LEAVE_REASON = "requested";
@@ -35,7 +34,7 @@ export type MeetLeaveInput = z.infer<typeof MeetLeaveInputSchema>;
 
 /**
  * Build the `meet_leave` tool, wired to the supplied `SkillHost` for
- * feature-flag reads and logging.
+ * logging.
  */
 export function createMeetLeaveTool(host: SkillHost): Tool {
   const log = host.logger.get("meet-leave-tool");
@@ -73,18 +72,7 @@ export function createMeetLeaveTool(host: SkillHost): Tool {
       input: Record<string, unknown>,
       _context: ToolContext,
     ): Promise<ToolExecutionResult> {
-      // 1. Feature-flag gate — symmetric with meet_join so that disabling
-      //    the feature blocks both sides of the lifecycle instead of
-      //    leaking a half-working interface.
-      if (!host.config.isFeatureFlagEnabled(MEET_FLAG_KEY)) {
-        return {
-          content:
-            "Error: the meet feature is disabled. Enable the `meet` feature flag to manage Google Meet calls.",
-          isError: true,
-        };
-      }
-
-      // 2. Input validation. All fields are optional so a bare `{}` is valid;
+      // 1. Input validation. All fields are optional so a bare `{}` is valid;
       //    Zod still catches wrong-type submissions and we surface the first
       //    issue verbatim for debuggability.
       const parsed = MeetLeaveInputSchema.safeParse(input);
@@ -95,7 +83,7 @@ export function createMeetLeaveTool(host: SkillHost): Tool {
       }
       const { meetingId: explicitId, reason } = parsed.data;
 
-      // 3. Disambiguate the target session when no id is supplied. Ambiguity
+      // 2. Disambiguate the target session when no id is supplied. Ambiguity
       //    (zero or multiple active sessions) is a caller error: we refuse
       //    rather than guess, so the skill can prompt the user for the
       //    specific meeting.
@@ -120,7 +108,7 @@ export function createMeetLeaveTool(host: SkillHost): Tool {
         targetMeetingId = active[0].meetingId;
       }
 
-      // 4. Delegate. `leave()` is idempotent for unknown meeting ids, so we
+      // 3. Delegate. `leave()` is idempotent for unknown meeting ids, so we
       //    don't need a pre-flight existence check — but we do call it out
       //    in the response when nothing matched, to avoid telling the
       //    model "left" for a no-op.
