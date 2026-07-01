@@ -2,7 +2,7 @@
 
 Google Meet join + transcription + voice/chat participation skill.
 
-The skill entrypoint lives in [`SKILL.md`](./SKILL.md); skill-internal
+The skill entrypoint lives in [`skills/meet-join/SKILL.md`](./skills/meet-join/SKILL.md); skill-internal
 architecture and the isolation rule are covered in
 [`AGENTS.md`](./AGENTS.md).
 
