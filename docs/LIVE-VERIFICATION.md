@@ -14,9 +14,8 @@ criteria, and what to capture when something goes wrong.
 ### Prerequisites
 
 - A running Vellum assistant on the machine under test (bare-metal or Docker).
-- The `meet` feature flag enabled — default on. Check with
-  `cat ~/.vellum/protected/feature-flags.json 2>/dev/null` and
-  `rg '"meet"' meta/feature-flags/feature-flag-registry.json`.
+- The meet-join plugin installed and enabled (its presence is the on/off
+  switch; no separate feature flag to check).
 - A configured STT provider under `services.stt.provider` (`deepgram`,
   `google-gemini`, or `openai-whisper`) with credentials in the credential
   store. For Test 2, `deepgram` is required — only Deepgram emits the

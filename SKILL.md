@@ -7,7 +7,6 @@ metadata:
   vellum:
     category: "voice"
     display-name: "Meet Join"
-    feature-flag: meet
 ---
 
 Use this skill when the user explicitly asks the assistant to join a Google Meet call (e.g. "join my meet", "can you join this call and take notes", usually with a `https://meet.google.com/...` URL in context). Joining a call causes the assistant to appear as a visible participant — never do it proactively.
@@ -52,7 +51,6 @@ When a single meeting is active, `meetingId` can be omitted — the tool targets
 ## Important constraints
 
 - This skill NEVER joins a meeting based on calendar context alone. Always require an explicit user request.
-- If the `meet` feature flag is disabled, the meet tools return a clear error — relay that to the user rather than retrying.
 
 ## Transcription
 

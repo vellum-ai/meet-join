@@ -25,7 +25,6 @@ import {
   MeetSessionNotFoundError,
   MeetSessionUnreachableError,
 } from "../daemon/session-manager.js";
-import { MEET_FLAG_KEY } from "./meet-join-tool.js";
 
 const MeetSendChatInputSchema = z.object({
   meetingId: z.string().trim().min(1).optional(),
@@ -36,7 +35,7 @@ export type MeetSendChatInput = z.infer<typeof MeetSendChatInputSchema>;
 
 /**
  * Build the `meet_send_chat` tool, wired to the supplied `SkillHost` for
- * feature-flag reads and logging.
+ * logging.
  */
 export function createMeetSendChatTool(host: SkillHost): Tool {
   const log = host.logger.get("meet-send-chat-tool");
@@ -80,16 +79,7 @@ export function createMeetSendChatTool(host: SkillHost): Tool {
       input: Record<string, unknown>,
       _context: ToolContext,
     ): Promise<ToolExecutionResult> {
-      // 1. Feature-flag gate — symmetric with meet_join / meet_leave.
-      if (!host.config.isFeatureFlagEnabled(MEET_FLAG_KEY)) {
-        return {
-          content:
-            "Error: the meet feature is disabled. Enable the `meet` feature flag to send chat in Google Meet calls.",
-          isError: true,
-        };
-      }
-
-      // 2. Input validation.
+      // 1. Input validation.
       const parsed = MeetSendChatInputSchema.safeParse(input);
       if (!parsed.success) {
         const message =
@@ -98,7 +88,7 @@ export function createMeetSendChatTool(host: SkillHost): Tool {
       }
       const { meetingId: explicitId, text } = parsed.data;
 
-      // 3. Disambiguate target session when no id is supplied. Zero or >1
+      // 2. Disambiguate target session when no id is supplied. Zero or >1
       //    active sessions is a caller error — refuse rather than guess.
       let targetMeetingId: string;
       if (explicitId) {
@@ -121,7 +111,7 @@ export function createMeetSendChatTool(host: SkillHost): Tool {
         targetMeetingId = active[0].meetingId;
       }
 
-      // 4. Delegate.
+      // 3. Delegate.
       try {
         await MeetSessionManager.sendChat(targetMeetingId, text);
       } catch (err) {

@@ -34,8 +34,6 @@ import { z } from "zod";
 import { getMeetConfig } from "../meet-config.js";
 import { MeetSessionManager } from "../daemon/session-manager.js";
 
-/** Feature-flag key that gates the Meet joining bot end-to-end. */
-export const MEET_FLAG_KEY = "meet" as const;
 
 /** Fallback assistant name when `IDENTITY.md` has not been written yet. */
 export const DEFAULT_ASSISTANT_NAME = "Vellum";
@@ -74,7 +72,7 @@ export function substituteAssistantName(
 
 /**
  * Build the `meet_join` tool, wired to the supplied `SkillHost` for
- * feature-flag reads, assistant identity, and logging.
+ * assistant identity and logging.
  */
 export function createMeetJoinTool(host: SkillHost): Tool {
   const log = host.logger.get("meet-join-tool");
@@ -113,17 +111,7 @@ export function createMeetJoinTool(host: SkillHost): Tool {
       input: Record<string, unknown>,
       context: ToolContext,
     ): Promise<ToolExecutionResult> {
-      // 1. Feature-flag gate. Keep the error wording stable so the skill can
-      //    relay it verbatim to the user without surprises.
-      if (!host.config.isFeatureFlagEnabled(MEET_FLAG_KEY)) {
-        return {
-          content:
-            "Error: the meet feature is disabled. Enable the `meet` feature flag to join Google Meet calls.",
-          isError: true,
-        };
-      }
-
-      // 2. Input validation.
+      // 1. Input validation.
       const parsed = MeetJoinInputSchema.safeParse(input);
       if (!parsed.success) {
         const message =
@@ -132,7 +120,7 @@ export function createMeetJoinTool(host: SkillHost): Tool {
       }
       const { url, note } = parsed.data;
 
-      // 3. Consent-message substitution. We resolve `{assistantName}` here so
+      // 2. Consent-message substitution. We resolve `{assistantName}` here so
       //    the substituted string reaches the bot container via the session
       //    manager — keeping the substitution in the tool lets the config
       //    value remain a template (stable across renames) while the bot
@@ -146,12 +134,12 @@ export function createMeetJoinTool(host: SkillHost): Tool {
         assistantName,
       );
 
-      // 4. Generate a fresh meeting id. UUIDs give us the cryptographic
+      // 3. Generate a fresh meeting id. UUIDs give us the cryptographic
       //    uniqueness the session manager's per-meeting token resolver
       //    expects without having to coordinate ids across subsystems.
       const meetingId = randomUUID();
 
-      // 5. Delegate to the session manager. Failures surface as tool errors
+      // 4. Delegate to the session manager. Failures surface as tool errors
       //    rather than throwing, so the agent loop can re-prompt the user
       //    with a clear message instead of marking the whole turn as an
       //    unexpected failure.

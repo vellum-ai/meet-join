@@ -1,7 +1,7 @@
 /**
  * Tests for the `meet_speak` and `meet_cancel_speak` tools.
  *
- * Exercises feature-flag gating, input validation (length cap, optional
+ * Exercises input validation (length cap, optional
  * voice, optional meetingId), disambiguation when the caller omits
  * `meetingId` (0 / 1 / many active sessions), explicit-id pass-through,
  * and error propagation from the session manager. Mirrors the mocking
@@ -9,13 +9,12 @@
  *
  * The tools are now constructed via factories (`createMeetSpeakTool`,
  * `createMeetCancelSpeakTool`) taking a `SkillHost`; the test builds a
- * minimal fake host (feature-flag reads, no-op logger) to drive them.
+ * minimal fake host (no-op logger) to drive them.
  */
 
 import type { SkillHost, Tool } from "../../plugin-host.js";
 import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 
-let flagEnabled = true;
 let activeSessionsValue: Array<{
   meetingId: string;
   conversationId: string;
@@ -90,8 +89,6 @@ function makeHost(): SkillHost {
         new Proxy({} as Record<string, unknown>, { get: () => () => {} }),
     } as SkillHost["logger"],
     config: {
-      isFeatureFlagEnabled: (key: string) =>
-        key === "meet" ? flagEnabled : true,
       getSection: () => undefined,
     },
     identity: throwingProxy("identity") as SkillHost["identity"],
@@ -132,7 +129,6 @@ function fakeSession(meetingId: string) {
 }
 
 beforeEach(() => {
-  flagEnabled = true;
   activeSessionsValue = [];
   speakMock.mockClear();
   speakMock.mockImplementation(async () => ({ streamId: "stream-default" }));
@@ -148,23 +144,8 @@ afterAll(() => {
 });
 
 // ---------------------------------------------------------------------------
-// meet_speak — feature-flag gating
 // ---------------------------------------------------------------------------
 
-describe("meet_speak feature-flag gating", () => {
-  test("returns an error when the meet flag is off", async () => {
-    flagEnabled = false;
-    meetSpeakTool = createMeetSpeakTool(makeHost());
-    activeSessionsValue = [fakeSession("m1")];
-    const result = await meetSpeakTool.execute(
-      { text: "hello" },
-      makeContext() as never,
-    );
-    expect(result.isError).toBe(true);
-    expect(result.content).toContain("meet feature is disabled");
-    expect(speakMock).not.toHaveBeenCalled();
-  });
-});
 
 // ---------------------------------------------------------------------------
 // meet_speak — input validation
@@ -356,23 +337,8 @@ describe("meet_speak error propagation", () => {
 });
 
 // ---------------------------------------------------------------------------
-// meet_cancel_speak — feature-flag gating
 // ---------------------------------------------------------------------------
 
-describe("meet_cancel_speak feature-flag gating", () => {
-  test("returns an error when the meet flag is off", async () => {
-    flagEnabled = false;
-    meetCancelSpeakTool = createMeetCancelSpeakTool(makeHost());
-    activeSessionsValue = [fakeSession("m1")];
-    const result = await meetCancelSpeakTool.execute(
-      {},
-      makeContext() as never,
-    );
-    expect(result.isError).toBe(true);
-    expect(result.content).toContain("meet feature is disabled");
-    expect(cancelSpeakMock).not.toHaveBeenCalled();
-  });
-});
 
 // ---------------------------------------------------------------------------
 // meet_cancel_speak — disambiguation

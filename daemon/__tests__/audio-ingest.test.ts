@@ -936,7 +936,6 @@ describe("createAudioIngest — default transcriber factory", () => {
     return {
       logger: { get: () => logger },
       config: {
-        isFeatureFlagEnabled: () => false,
         getSection: () => undefined,
       },
       identity: {

@@ -85,7 +85,6 @@ function makeTestHost(): {
   const host: SkillHost = {
     logger: { get: () => noopLogger },
     config: {
-      isFeatureFlagEnabled: () => false,
       getSection: () => undefined,
     },
     identity: {

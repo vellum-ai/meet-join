@@ -116,10 +116,6 @@ function defaultLoggerFacet(): LoggerFacet {
 
 function defaultConfigFacet(): ConfigFacet {
   return {
-    // Default to flags-off so a test that forgets to override does not
-    // accidentally exercise a flag-gated code path. Tests that want the
-    // flag on pass `{ config: { isFeatureFlagEnabled: () => true, ... } }`.
-    isFeatureFlagEnabled: () => false,
     getSection: () => undefined,
   };
 }

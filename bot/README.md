@@ -174,11 +174,8 @@ the meet subsystem, run this manual verification loop.
   Gemini, or OpenAI Whisper) with its credentials available in the assistant's
   credential store. The assistant resolves the provider and its credentials at
   meeting-start time; the bot itself does not see STT credentials.
-- The `meet` feature flag enabled. Either:
-  - **Local override** — set `meet` to `true` in
-    `~/.vellum/workspace/config.json` (or `$VELLUM_WORKSPACE_DIR/config.json`
-    in Docker mode) under the assistant feature flags block, OR
-  - **the feature flag provider** — flip the `meet` flag on for your platform user.
+- The meet-join plugin installed and enabled. The plugin's presence is the
+  on/off switch; there is no separate feature flag to provision or flip.
 - A throwaway Google Meet URL with at least one other human participant so
   you can watch the bot behavior live.
 

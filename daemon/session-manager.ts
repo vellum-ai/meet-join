@@ -124,6 +124,8 @@ import type {
   DockerRunResult,
   DockerWaitResult,
 } from "./docker-runner.js";
+import { createDirectBotRunner } from "./direct-bot-runner.js";
+import { getMeetBotBackend } from "./meet-backend.js";
 import {
   meetEventDispatcher,
   publishMeetEvent,
@@ -881,8 +883,14 @@ class MeetSessionManagerImpl {
         ) => (deps: MeetBargeInWatcherDeps) => MeetBargeInWatcher
       >("barge-in-watcher");
 
-    const dockerRunnerBuilder = (): DockerRunner =>
-      dockerRunnerSubModule(host, resolveWorkspaceDir);
+    // Pick the bot runner backend the `init` hook resolved. Docker present →
+    // spawn a container per meeting (historical behavior); Docker absent →
+    // run the bot as a direct child process. Read lazily on each spawn so a
+    // late init decision (or a test override) is always honored.
+    const botRunnerBuilder = () =>
+      getMeetBotBackend() === "direct"
+        ? createDirectBotRunner(host.logger.get("meet-direct-bot-runner"))
+        : dockerRunnerSubModule(host, resolveWorkspaceDir);
     const audioIngestBuilder = audioIngestSubModule(host);
     const consentMonitorBuilder = consentMonitorSubModule(host);
     const conversationBridgeBuilder = conversationBridgeSubModule(host);
@@ -897,7 +905,7 @@ class MeetSessionManagerImpl {
     const bargeInWatcherBuilder = bargeInWatcherSubModule(host);
 
     this.deps = {
-      dockerRunnerFactory: deps.dockerRunnerFactory ?? dockerRunnerBuilder,
+      dockerRunnerFactory: deps.dockerRunnerFactory ?? botRunnerBuilder,
       getProviderKey:
         deps.getProviderKey ??
         (async (id) =>
@@ -2693,7 +2701,6 @@ function buildSessionManagerTestHost(): SkillHost {
   return {
     logger: { get: () => noopLogger },
     config: {
-      isFeatureFlagEnabled: () => false,
       getSection: () => undefined,
     },
     identity: {

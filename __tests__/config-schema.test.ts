@@ -27,10 +27,9 @@ const DEFAULT_AVATAR = {
 };
 
 describe("MeetServiceSchema", () => {
-  test("empty object parses to the documented defaults (feature off by default)", () => {
+  test("empty object parses to the documented defaults", () => {
     const parsed = MeetServiceSchema.parse({});
     expect(parsed).toEqual({
-      enabled: false,
       containerImage: "vellum-meet-bot:dev",
       joinName: null,
       consentMessage:
@@ -59,7 +58,6 @@ describe("MeetServiceSchema", () => {
 
   test("valid custom values round-trip", () => {
     const input = {
-      enabled: true,
       containerImage: "registry.example.com/meet-bot:1.0.0",
       joinName: "Notes Bot",
       consentMessage:
@@ -211,9 +209,9 @@ describe("MeetServiceSchema", () => {
     }
   });
 
-  test("partial config with only enabled: true fills in remaining defaults", () => {
-    const parsed = MeetServiceSchema.parse({ enabled: true });
-    expect(parsed.enabled).toBe(true);
+  test("partial config fills in remaining defaults", () => {
+    const parsed = MeetServiceSchema.parse({ dockerNetwork: "vellum-meet" });
+    expect(parsed.dockerNetwork).toBe("vellum-meet");
     expect(parsed.containerImage).toBe("vellum-meet-bot:dev");
     expect(parsed.joinName).toBe(null);
     expect(parsed.autoLeaveOnObjection).toBe(true);

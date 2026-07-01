@@ -1,39 +1,29 @@
 /**
- * meet-join skill — tool and route registration entry point.
+ * meet-join plugin: tool and route registration entry point.
  *
  * Exported `register(host)` is called exactly once per daemon lifetime
- * by the assistant's external-skills bootstrap. It wires the skill's
- * `meet_*` tools and the meet-bot ingress HTTP route into the host's
- * registries so the LLM can invoke the tools and the bot can POST
- * events back to the daemon.
+ * when the plugin loads. It wires the plugin's `meet_*` tools and the
+ * meet-bot ingress HTTP route into the host's registries so the LLM can
+ * invoke the tools and the bot can POST events back to the daemon.
  *
  * ## Isolation
  *
  * This file and every module it imports takes a runtime-injected
- * `SkillHost` from `@vellumai/skill-host-contracts` for feature-flag
- * reads, logger access, event publication, and registry hooks. No file
- * under `skills/meet-join/` reaches into `assistant/src/...` directly;
- * the only cross-directory edge is the sanctioned named import of this
- * module from `assistant/src/daemon/external-skills-bootstrap.ts`.
+ * `SkillHost` from `./plugin-host.js` for logger access, event
+ * publication, and registry hooks. The plugin does not reach into the
+ * assistant's internals directly; the host surface is the only edge.
  *
- * ## Feature-flag semantics
+ * ## Enablement
  *
- * Tool registration is gated by the `meet` feature flag. The check is
- * wrapped in the lazy provider closure passed to
- * `host.registries.registerTools(...)` — the daemon resolves the
- * closure inside `getExternalTools()`, which runs after
- * `mergeDefaultWorkspaceConfig()`, so the flag read sees the merged
- * workspace config rather than forcing an early `loadConfig()` against
- * unmerged defaults. Each tool also performs a defensive in-`execute()`
- * flag check so stale tool definitions cached by a long-running agent
- * turn can't silently fall through to the session manager.
+ * The plugin's presence is the feature switch: installing it registers the
+ * `meet_*` tools, uninstalling (or disabling) it removes them. There is no
+ * separate feature flag; tool registration is unconditional.
  *
- * Route registration is unconditional — the handler authenticates
- * against the per-meeting bearer token resolver, which returns null
- * when no session is active. With the meet flag off, no sessions
- * exist, so every request gets a 401 from the handler itself rather
- * than silently falling through to the daemon's JWT middleware (which
- * would reject the bot's opaque bearer token as a malformed JWT).
+ * Route registration authenticates against the per-meeting bearer token
+ * resolver, which returns null when no session is active. With no session,
+ * every request gets a 401 from the handler itself rather than silently
+ * falling through to the daemon's JWT middleware (which would reject the
+ * bot's opaque bearer token as a malformed JWT).
  */
 
 import type { SkillHost } from "./plugin-host.js";
@@ -47,7 +37,7 @@ import {
   createMeetDisableAvatarTool,
   createMeetEnableAvatarTool,
 } from "./tools/meet-avatar-tool.js";
-import { MEET_FLAG_KEY, createMeetJoinTool } from "./tools/meet-join-tool.js";
+import { createMeetJoinTool } from "./tools/meet-join-tool.js";
 import { createMeetLeaveTool } from "./tools/meet-leave-tool.js";
 import { createMeetSendChatTool } from "./tools/meet-send-chat-tool.js";
 import {
@@ -87,26 +77,13 @@ export function register(host: SkillHost): void {
     },
   });
 
-  host.registries.registerTools(() => {
-    try {
-      if (!host.config.isFeatureFlagEnabled(MEET_FLAG_KEY)) {
-        return [];
-      }
-    } catch {
-      // Config not yet loaded (e.g. during certain test setups) — treat
-      // as flag off so tool definitions don't leak into test scopes
-      // that haven't opted in.
-      return [];
-    }
-
-    return [
-      createMeetJoinTool(host),
-      createMeetLeaveTool(host),
-      createMeetSendChatTool(host),
-      createMeetSpeakTool(host),
-      createMeetCancelSpeakTool(host),
-      createMeetEnableAvatarTool(host),
-      createMeetDisableAvatarTool(host),
-    ];
-  });
+  host.registries.registerTools(() => [
+    createMeetJoinTool(host),
+    createMeetLeaveTool(host),
+    createMeetSendChatTool(host),
+    createMeetSpeakTool(host),
+    createMeetCancelSpeakTool(host),
+    createMeetEnableAvatarTool(host),
+    createMeetDisableAvatarTool(host),
+  ]);
 }

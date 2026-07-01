@@ -61,11 +61,6 @@ are **not** candidates for relocation into `skills/meet-join/`:
   file alongside every other domain's wire types. This is protocol-level
   surface, not runtime code.
 
-- **`meta/feature-flags/feature-flag-registry.json`** — the central
-  declaration of every assistant feature flag, including `meet`. This is
-  the canonical flag registry; per-flag entries are not relocated to
-  owning skills.
-
 ## Browser control: the extension package (`meet-controller-ext/`)
 
 Browser-side Meet control lives in the sibling `meet-controller-ext/`
@@ -97,19 +92,8 @@ for the empirical repro.
 Do not re-introduce Playwright or any CDP-based automation library into
 `bot/`. See `bot/AGENTS.md` for the bot-side architecture.
 
-## Release gating
+## Enablement
 
-The `meet` feature flag defaults to **off** in
-`meta/feature-flags/feature-flag-registry.json`. Turning it on in
-production requires both of the following to be true:
-
-1. All Blocking and Important PRs in the Phase 1.12 plan have landed on
-   `main` and been live-verified (no regressions against a real Meet).
-2. The the feature flag provider provisioning PR in `vellum-assistant-platform` has
-   merged, creating the Terraform entry for `meet` so the platform can
-   remote-sync the flag to managed assistants. This companion PR is
-   tracked in `meta/feature-flags/PENDING_PLATFORM_PRS.md` — the entry
-   there should be removed once the platform PR lands.
-
-Until both conditions are met, the flag must stay off for all users
-outside the local development environment.
+The plugin's presence is the on/off switch: installing the meet-join
+plugin registers the `meet_*` tools, and disabling or uninstalling it
+removes them. There is no separate feature flag to provision or flip.
